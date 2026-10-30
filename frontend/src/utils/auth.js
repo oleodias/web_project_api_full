@@ -1,10 +1,10 @@
-// Cadastro e login: o serviço de autenticação da TripleTen. Os cartões e o
-// perfil continuam na API do Around (utils/api.js): este serviço só tem
-// /signup, /signin e /users/me (conferido: /cards responde 404).
-export const BASE_URL = 'https://se-register-api.en.tripleten-services.com/v1';
+import { BASE_URL } from './constants.js';
 
-// Mesmo padrão da classe Api: o fetch só rejeita em falha de rede; um 400 ou
-// 401 chega no then() com res.ok === false e vira uma rejeição aqui.
+// Cadastro e login: as duas rotas públicas da API. Todo o resto (perfil e
+// cartões) está em utils/api.js e exige o token.
+
+// O fetch só rejeita quando a rede falha; um 400, 401 ou 409 chega no then()
+// com res.ok === false e vira uma rejeição aqui.
 function checkResponse(res) {
   if (res.ok) {
     return res.json();
@@ -12,6 +12,7 @@ function checkResponse(res) {
   return Promise.reject(`Error: ${res.status}`);
 }
 
+// Resposta: o usuário criado (sem a senha)
 export function register(email, password) {
   return fetch(`${BASE_URL}/signup`, {
     method: 'POST',
@@ -26,16 +27,5 @@ export function authorize(email, password) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
-  }).then(checkResponse);
-}
-
-// Confere se o token ainda vale e devolve { data: { email, _id } }.
-export function getUserData(token) {
-  return fetch(`${BASE_URL}/users/me`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
   }).then(checkResponse);
 }

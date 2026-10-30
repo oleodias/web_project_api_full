@@ -1,10 +1,27 @@
+import { BASE_URL } from './constants.js';
+
 // Toda a comunicação com o servidor: a classe Api do projeto anterior. Ela só
 // faz as solicitações e devolve as promessas; o que fazer com os dados é
 // decidido no App.
 class Api {
-  constructor({ baseUrl, headers }) {
+  constructor({ baseUrl }) {
     this._baseUrl = baseUrl;
-    this._headers = headers;
+    this._token = null;
+  }
+
+  // O token não é mais fixo (como o do curso nos projetos anteriores): é o
+  // JWT do usuário que entrou. O App o entrega aqui sempre que ele muda.
+  setToken(token) {
+    this._token = token;
+  }
+
+  // Um getter, e não um objeto montado no construtor: assim cada solicitação
+  // leva o token ATUAL.
+  get _headers() {
+    return {
+      authorization: `Bearer ${this._token}`,
+      'Content-Type': 'application/json',
+    };
   }
 
   // O fetch só rejeita quando a rede falha; um 404 ou um 500 chegam no then()
@@ -24,7 +41,7 @@ class Api {
   }
 
   getInitialCards() {
-    return fetch(`${this._baseUrl}/cards/`, {
+    return fetch(`${this._baseUrl}/cards`, {
       headers: this._headers,
     }).then(this._checkResponse);
   }
@@ -46,7 +63,7 @@ class Api {
   }
 
   addCard({ name, link }) {
-    return fetch(`${this._baseUrl}/cards/`, {
+    return fetch(`${this._baseUrl}/cards`, {
       method: 'POST',
       headers: this._headers,
       body: JSON.stringify({ name, link }),
@@ -61,7 +78,7 @@ class Api {
   }
 
   // Mesma URL para curtir e descurtir; muda só o método. isLiked é o estado
-  // ATUAL do cartão: se já está curtido, a ação é descurtir.
+  // ATUAL do cartão (calculado no Card): se já está curtido, a ação é descurtir.
   changeLikeStatus(cardId, isLiked) {
     return fetch(`${this._baseUrl}/cards/${cardId}/likes`, {
       method: isLiked ? 'DELETE' : 'PUT',
@@ -70,16 +87,7 @@ class Api {
   }
 }
 
-// Exporta a instância pronta, e não a classe: todo o app usa o mesmo objeto,
-// já configurado com o endereço e o token.
-// O token vem do arquivo .env (fora do Git): a Vite expõe ao código só as
-// variáveis que começam com VITE_, em import.meta.env.
-const api = new Api({
-  baseUrl: 'https://around-api.pt-br.tripleten-services.com/v1',
-  headers: {
-    authorization: import.meta.env.VITE_API_TOKEN,
-    'Content-Type': 'application/json',
-  },
-});
+// Exporta a instância pronta, e não a classe: todo o app usa o mesmo objeto.
+const api = new Api({ baseUrl: BASE_URL });
 
 export default api;
