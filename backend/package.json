@@ -1,0 +1,23 @@
+{
+  "name": "web_project_around_express",
+  "version": "1.0.0",
+  "description": "API do projeto Around The U.S. com Node.js e Express",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "lint": "npx eslint ."
+  },
+  "author": "Leonardo Dias Caumo",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.3.0",
+    "mongoose": "^8.24.7"
+  },
+  "devDependencies": {
+    "eslint": "8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.32.0",
+    "nodemon": "^3.1.14"
+  }
+}
