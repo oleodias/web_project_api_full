@@ -1,32 +1,54 @@
+// Lê o .env (só existe no servidor) para dentro de process.env. Precisa vir
+// antes de qualquer require que use process.env, como o utils/config.js.
+// quiet: a partir da versão 17, o dotenv imprime uma linha a cada config().
+require('dotenv').config({ quiet: true });
+
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-const {
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
-  NotFoundError,
-} = require('./utils/errors');
+const { createUser, login } = require('./controllers/users');
+const auth = require('./middlewares/auth');
+const errorHandler = require('./middlewares/error-handler');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { validateSignup, validateSignin } = require('./middlewares/validation');
+const NotFoundError = require('./errors/not-found-err');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, MONGO_URL = 'mongodb://localhost:27017/aroundb' } = process.env;
 const app = express();
 
 mongoose
-  .connect('mongodb://localhost:27017/aroundb')
+  .connect(MONGO_URL)
   .then(() => console.log('Conectado ao MongoDB'))
   .catch((error) => console.error('Não foi possível conectar ao MongoDB:', error.message));
 
+// CORS antes de tudo: o navegador manda um OPTIONS (preflight) antes de
+// toda requisição com JSON ou com Authorization, e o cors() responde a ele.
+// O enunciado também sugere app.options('*', cors()), mas no Express 5 o
+// '*' sozinho derruba o servidor ("Missing parameter name"), e o
+// app.use(cors()) já atende o OPTIONS de todas as rotas.
+app.use(cors());
 app.use(express.json());
 
-// Autorização TEMPORÁRIA (será trocada na próxima sprint): todas as
-// requisições agem como o usuário de teste criado pelo Postman.
-app.use((req, res, next) => {
-  req.user = {
-    _id: '5d8b8592978f8bd833ca8133', // _id do usuário de teste
-  };
+// 1) o logger de requisições vem antes de todas as rotas
+app.use(requestLogger);
 
-  next();
+// Teste de queda para a revisão: o erro é lançado dentro do setTimeout, fora
+// do Express, e derruba o processo. O PM2 tem que subi-lo de novo.
+// REMOVER DEPOIS DA REVISÃO.
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('O servidor travará agora');
+  }, 0);
 });
+
+// 2) rotas públicas
+app.post('/signin', validateSignin, login);
+app.post('/signup', validateSignup, createUser);
+
+// 3) daqui para baixo, só com um JWT válido
+app.use(auth);
 
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
@@ -36,34 +58,11 @@ app.use((req, res, next) => {
   next(new NotFoundError('A solicitação não foi encontrada'));
 });
 
-// Tratador de erros central: o Express o reconhece pelos QUATRO parâmetros,
-// por isso o next fica na assinatura mesmo sem uso. Cada if termina com
-// return, e o 500 fecha o bloco para qualquer erro inesperado.
-// eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) => {
-  if (err instanceof NotFoundError) {
-    return res.status(err.statusCode).send({ message: err.message });
-  }
+// 4) o logger de erros vem depois das rotas e antes do tratador
+app.use(errorLogger);
 
-  // CastError: um id malformado (/users/abc).
-  if (err.name === 'CastError') {
-    return res.status(BAD_REQUEST).send({ message: 'ID inválido' });
-  }
-
-  // ValidationError: dados que não passam no esquema (nome curto, link
-  // inválido, campo obrigatório faltando).
-  if (err.name === 'ValidationError') {
-    return res.status(BAD_REQUEST).send({ message: 'Dados inválidos' });
-  }
-
-  // Erros do próprio Express com status 400: JSON malformado no corpo,
-  // endereço malformado (/users/%E0).
-  if (err.status === BAD_REQUEST) {
-    return res.status(BAD_REQUEST).send({ message: 'Requisição inválida' });
-  }
-
-  return res.status(INTERNAL_SERVER_ERROR).send({ message: 'Ocorreu um erro no servidor' });
-});
+// 5) o tratador central responde a todos os erros
+app.use(errorHandler);
 
 // No Express 5, se a porta já estiver ocupada, o erro chega como argumento
 // deste callback. Sem o if, a mensagem de "listening" apareceria mesmo com o

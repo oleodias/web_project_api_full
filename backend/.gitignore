@@ -13,3 +13,6 @@ node_modules
 .DS_Store
 .idea
 .vscode
+
+# Variáveis de ambiente (só no servidor: NODE_ENV e JWT_SECRET)
+.env
