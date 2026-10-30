@@ -9,7 +9,7 @@ import ProtectedRoute from './ProtectedRoute/ProtectedRoute.jsx';
 import InfoTooltip from './InfoTooltip/InfoTooltip.jsx';
 import api from '../utils/api.js';
 import * as auth from '../utils/auth.js';
-import { getToken, removeToken, setToken } from '../utils/token.js';
+import * as tokenStorage from '../utils/token.js';
 import CurrentUserContext from '../contexts/CurrentUserContext.js';
 
 function App() {
@@ -20,58 +20,51 @@ function App() {
   const [popup, setPopup] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Autenticação. email é o do usuário logado, para o cabeçalho.
+  // Autenticação. token é o JWT do usuário: começa com o que estiver salvo
+  // no localStorage (ou null). É ele que dispara o carregamento dos dados.
+  // email é o do usuário logado, para o cabeçalho.
+  const [token, setToken] = useState(() => tokenStorage.getToken());
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   // Começa true quando há um token salvo: até o servidor responder se ele
   // vale, as rotas não são desenhadas. Sem isso, quem já entrou passaria por
   // /signin por um instante a cada recarga.
-  const [isCheckingToken, setIsCheckingToken] = useState(() =>
-    Boolean(getToken()),
-  );
+  const [isCheckingToken, setIsCheckingToken] = useState(() => Boolean(token));
   // O aviso do cadastro e do login: null (fechado) ou { isSuccess }.
   const [tooltip, setTooltip] = useState(null);
 
   const navigate = useNavigate();
 
-  // Na montagem: se há um token salvo, pergunta ao servidor se ele vale e
-  // pega o e-mail. Token vencido ou inválido é apagado.
+  // Sempre que o token muda (na montagem, com o token salvo, ou depois do
+  // login): entrega o token à Api e pede o perfil ao /users/me. Esse pedido
+  // também CONFERE o token: se ele venceu ou é inválido, o servidor
+  // responde 401, e o token é apagado. Só depois, os cartões.
+  //
+  // Na API própria, o /users/me devolve o usuário completo (com o e-mail):
+  // uma solicitação serve para conferir o token, preencher o cabeçalho e o
+  // perfil. No projeto anterior eram duas APIs, e por isso duas solicitações.
   useEffect(() => {
-    const token = getToken();
     if (!token) {
       return;
     }
 
-    auth
-      .getUserData(token)
-      .then(({ data }) => {
-        setEmail(data.email);
+    api.setToken(token);
+    api
+      .getUserInfo()
+      .then((userData) => {
+        setCurrentUser(userData);
+        setEmail(userData.email);
         setIsLoggedIn(true);
+        return api.getInitialCards();
       })
+      .then((cardsData) => setCards(cardsData))
       .catch((error) => {
-        removeToken();
+        tokenStorage.removeToken();
+        setToken(null);
         console.error(error);
       })
       .finally(() => setIsCheckingToken(false));
-  }, []);
-
-  // Perfil e cartões: uma solicitação de cada quando o usuário entra (na
-  // montagem, se o token salvo vale; ou logo depois do login).
-  useEffect(() => {
-    if (!isLoggedIn) {
-      return;
-    }
-
-    api
-      .getUserInfo()
-      .then((userData) => setCurrentUser(userData))
-      .catch((error) => console.error(error));
-
-    api
-      .getInitialCards()
-      .then((cardsData) => setCards(cardsData))
-      .catch((error) => console.error(error));
-  }, [isLoggedIn]);
+  }, [token]);
 
   function handleRegister({ email: newEmail, password }) {
     auth
@@ -86,10 +79,14 @@ function App() {
   function handleLogin({ email: loginEmail, password }) {
     auth
       .authorize(loginEmail, password)
-      .then(({ token }) => {
-        setToken(token); // o JWT é salvo no login, que é onde ele chega
-        setEmail(loginEmail);
-        setIsLoggedIn(true);
+      .then((data) => {
+        // O JWT chega no login: vai para o localStorage (para a próxima
+        // visita) e para o estado (que dispara o useEffect acima). Até o
+        // /users/me responder, as rotas ficam escondidas; quando ele
+        // responde, isLoggedIn já é true e a página principal aparece.
+        tokenStorage.setToken(data.token);
+        setIsCheckingToken(true);
+        setToken(data.token);
         navigate('/', { replace: true });
       })
       .catch((error) => {
@@ -99,7 +96,9 @@ function App() {
   }
 
   function handleSignOut() {
-    removeToken();
+    tokenStorage.removeToken();
+    setToken(null);
+    api.setToken(null);
     setIsLoggedIn(false);
     setEmail('');
     setCurrentUser({});
@@ -124,11 +123,12 @@ function App() {
     setPopup(null);
   }
 
-  function handleCardLike(card) {
-    // card.isLiked é o estado atual; a API devolve o cartão atualizado, que
-    // entra no lugar do antigo. map cria um array novo: nada é mutado.
+  function handleCardLike(card, isLiked) {
+    // isLiked é o estado atual (o Card calcula a partir de card.likes); a API
+    // devolve o cartão atualizado, que entra no lugar do antigo. map cria um
+    // array novo: nada é mutado.
     api
-      .changeLikeStatus(card._id, card.isLiked)
+      .changeLikeStatus(card._id, isLiked)
       .then((newCard) => {
         setCards((state) =>
           state.map((currentCard) =>

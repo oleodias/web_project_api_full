@@ -3,11 +3,17 @@ import CurrentUserContext from '../../../../contexts/CurrentUserContext.js';
 
 export default function Card(props) {
   const { card, onCardClick, onCardLike, onCardDelete } = props;
-  const { name, link, isLiked, owner } = card;
+  const { name, link, likes, owner } = card;
   const { currentUser } = useContext(CurrentUserContext);
 
-  // Só o dono do cartão vê a lixeira. owner é o _id de quem criou o cartão.
+  // Só o dono do cartão vê a lixeira. owner é o _id de quem criou o cartão
+  // (uma string no JSON, como currentUser._id).
   const isOwn = owner === currentUser._id;
+
+  // A API própria não manda isLiked, como a do curso mandava: manda likes,
+  // a lista de _id de quem curtiu. O cartão está curtido se o usuário atual
+  // está nela.
+  const isLiked = likes.some((userId) => userId === currentUser._id);
 
   // Verificar se o usuário atual "curtiu" o cartão
   const cardLikeButtonClassName = `card__like-button ${
@@ -20,7 +26,7 @@ export default function Card(props) {
   }
 
   function handleLikeClick() {
-    onCardLike(card);
+    onCardLike(card, isLiked);
   }
 
   function handleDeleteClick() {

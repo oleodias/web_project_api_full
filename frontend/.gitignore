@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 
-# Variáveis de ambiente (o token da API)
+# Variáveis de ambiente locais
 .env
 
 # Editor directories and files
