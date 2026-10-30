@@ -12,6 +12,22 @@ capítulo "Preparação e implantação do back-end" da Sprint 18. Troque:
 > instrução oficial atual. Se algo mudar, confira em
 > <https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/>.
 
+## No Windows
+
+Use o **PowerShell** (menu Iniciar → "PowerShell"; o terminal do VS Code também
+serve). O Windows 10/11 já traz `ssh`, `ssh-keygen` e `scp`. Diferenças:
+
+| Linux/Mac | PowerShell |
+| --- | --- |
+| `cat ~/.ssh/id_ed25519.pub` | `Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub` |
+| `ssh-add ~/.ssh/id_ed25519` | **não precisa**: o `ssh` usa a chave `id_ed25519` sozinho (e o serviço `ssh-agent` vem desligado no Windows) |
+| `VITE_API_URL=https://api.DOMINIO npm run build` | `$env:VITE_API_URL="https://api.DOMINIO"; npm run build` |
+| `scp -r ./dist/* ...` | `scp -r .\dist\* ...` |
+
+No Google Cloud, o **usuário** da VM sai do comentário da chave (o texto
+depois do `-C`). Use um nome simples, sem `@`: `-C "leonardo"` → usuário
+`leonardo`.
+
 ## 1. VM
 
 Google Cloud → Compute Engine → **Create instance**:
@@ -23,7 +39,7 @@ Google Cloud → Compute Engine → **Create instance**:
 
 ```bash
 # na sua máquina
-ssh-keygen -t ed25519 -C "leonardodiascaumo@gmail.com"   # se ainda não tiver
+ssh-keygen -t ed25519 -C "leonardo"   # o comentário vira o usuário da VM
 cat ~/.ssh/id_ed25519.pub                                 # copie ESTA (a .pub)
 ssh-add ~/.ssh/id_ed25519
 ssh USUARIO@IP
