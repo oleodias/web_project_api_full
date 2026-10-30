@@ -1,0 +1,121 @@
+/* Telas de cadastro e de login, com as medidas do design (1280 e 320).
+   Os campos são só um sublinhado, sobre o fundo preto da página. */
+.auth {
+  width: 100%;
+  max-width: 358px;
+  /* 58, e não 60 do design: o cabeçalho herdado tem 121px de altura, 2 a mais
+     que o do design, e assim o título fica no lugar certo (179px). */
+  margin: 58px auto 0;
+  font-family: 'Inter', Arial, sans-serif;
+  color: #fff;
+}
+
+.auth__title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 29px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 50px;
+}
+
+.auth__input {
+  width: 100%;
+  /* Altura explícita: sem ela, o Chrome dá ao campo uma linha mínima maior
+     que 14px, e cada campo ficava com 32px em vez dos 29 do design. */
+  height: 29px;
+  box-sizing: border-box;
+  padding: 0 0 13px;
+  border: none;
+  border-bottom: 2px solid #ccc;
+  border-radius: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 14px;
+  font-weight: 500;
+  color: #fff;
+  outline: none;
+}
+
+.auth__input + .auth__input {
+  margin-top: 28px;
+}
+
+.auth__input::placeholder {
+  color: #ccc;
+  font-weight: 400;
+}
+
+.auth__input:focus {
+  border-bottom-color: #fff;
+}
+
+.auth__button {
+  height: 50px;
+  margin-top: 214px;
+  border: none;
+  border-radius: 2px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 18px;
+  line-height: 22px;
+  color: #000;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.auth__button:hover {
+  opacity: 0.85;
+}
+
+.auth__text {
+  margin: 15px 0 0;
+  font-size: 14px;
+  line-height: 17px;
+  text-align: center;
+}
+
+.auth__link {
+  color: #fff;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.auth__link:hover {
+  opacity: 0.6;
+}
+
+@media screen and (max-width: 544px) {
+  .auth {
+    max-width: 260px;
+    margin-top: 38px;
+  }
+
+  .auth__title {
+    font-size: 20px;
+    line-height: 24px;
+  }
+
+  .auth__form {
+    margin-top: 40px;
+  }
+
+  .auth__button {
+    height: 46px;
+    margin-top: 171px;
+    font-size: 16px;
+    line-height: 19px;
+  }
+
+  .auth__text {
+    margin-top: 20px;
+    font-size: 12px;
+    line-height: 15px;
+  }
+}

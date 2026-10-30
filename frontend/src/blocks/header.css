@@ -1,0 +1,124 @@
+.header {
+  font-family: 'Inter', Arial, sans-serif;
+  border-bottom: 1px solid rgba(84, 84, 84, 0.7);
+}
+
+.header__bar {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.header__logo {
+  width: 173px;
+  height: 33px;
+  object-fit: contain;
+}
+
+/* Link do cabeçalho: "Faça o login", "Inscrever-se" e "Sair" */
+.header__link {
+  font-family: inherit;
+  font-size: 18px;
+  line-height: 22px;
+  font-weight: 400;
+  color: #fff;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.header__link:hover {
+  opacity: 0.6;
+}
+
+.header__link_type_signout {
+  color: #a9a9a9;
+}
+
+.header__user {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.header__email {
+  margin: 0;
+  font-size: 18px;
+  line-height: 22px;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Só no celular */
+.header__menu,
+.header__menu-button {
+  display: none;
+}
+
+@media screen and (max-width: 544px) {
+  .header__bar {
+    min-height: 85px;
+  }
+
+  .header__logo {
+    width: 126px;
+    height: 24px;
+    margin: 0 0 0 7px;
+  }
+
+  .header__link {
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  .header__user {
+    display: none;
+  }
+
+  /* Menu aberto: e-mail e "Sair" centralizados acima da faixa, separados
+     dela por uma linha, com as medidas do design (40px acima, 12 entre os
+     dois, 46 abaixo). */
+  .header__menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 40px 0 46px;
+    border-bottom: 1px solid rgba(84, 84, 84, 0.7);
+  }
+
+  /* E-mails longos quebram em mais de uma linha: centralizadas também. */
+  .header__menu .header__email {
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  .header__menu .header__link {
+    font-size: 18px;
+  }
+
+  .header__menu-button {
+    display: block;
+    width: 24px;
+    height: 21px;
+    background: transparent url('../images/menu.svg') center no-repeat;
+    border: none;
+    padding: 0;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+
+  .header__menu-button:hover {
+    opacity: 0.6;
+  }
+
+  .header__menu-button_opened {
+    background-image: url('../images/close.svg');
+    background-size: 20px 20px;
+  }
+}
