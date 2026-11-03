@@ -48,6 +48,18 @@ ssh USUARIO@IP
 ## 2. Node, MongoDB e Git (na VM)
 
 ```bash
+# Atualizações do sistema
+sudo apt-get update && sudo apt-get upgrade -y
+
+# Swap de 2 GB: a e2-micro tem só 1 GB de RAM; sem swap, o MongoDB ou o
+# npm podem ser encerrados por falta de memória
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+free -h   # a linha Swap deve mostrar 2.0Gi
+
 # Node — use a mesma versão principal da sua máquina (node -v); ex.: 22
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs git
