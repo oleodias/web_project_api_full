@@ -7,6 +7,9 @@ capítulo "Preparação e implantação do back-end" da Sprint 18. Troque:
 - `IP` → o IP externo da VM;
 - `DOMINIO` → o subdomínio registrado no FreeDNS (ex.: `leoaround.mooo.com`).
 
+> Se o login da VM sugerir `do-release-upgrade` (Ubuntu 24.04), **não** rode:
+> é uma troca de versão inteira do sistema, e este guia é para o 22.04.
+
 > Os comandos de MongoDB e Node do curso são para o Ubuntu 18.04 e não
 > funcionam no 22.04 que a própria lição manda escolher. Os daqui seguem a
 > instrução oficial atual. Se algo mudar, confira em
@@ -48,6 +51,11 @@ ssh USUARIO@IP
 ## 2. Node, MongoDB e Git (na VM)
 
 ```bash
+# Sem isto, cada instalação abre uma janela roxa ("Which services should be
+# restarted?") que às vezes não aceita o teclado no Terminal do Windows.
+# 'a' = reinicia sozinho os serviços recomendados, sem perguntar.
+echo "\$nrconf{restart} = 'a';" | sudo tee /etc/needrestart/conf.d/99-auto.conf
+
 # Atualizações do sistema
 sudo apt-get update && sudo apt-get upgrade -y
 
