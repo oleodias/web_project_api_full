@@ -25,7 +25,7 @@ serve). O Windows 10/11 já traz `ssh`, `ssh-keygen` e `scp`. Diferenças:
 | `cat ~/.ssh/id_ed25519.pub` | `Get-Content $env:USERPROFILE\.ssh\id_ed25519.pub` |
 | `ssh-add ~/.ssh/id_ed25519` | **não precisa**: o `ssh` usa a chave `id_ed25519` sozinho (e o serviço `ssh-agent` vem desligado no Windows) |
 | `VITE_API_URL=https://api.DOMINIO npm run build` | `$env:VITE_API_URL="https://api.DOMINIO"; npm run build` |
-| `scp -r ./dist/* ...` | `scp -r .\dist\* ...` |
+| `scp -r ./dist/* ...` | `scp -r .\dist USUARIO@IP:/home/USUARIO/frontend` (sem a pasta `frontend` na VM, o `scp` a cria com o conteúdo de `dist`) |
 
 No Google Cloud, o **usuário** da VM sai do comentário da chave (o texto
 depois do `-C`). Use um nome simples, sem `@`: `-C "leonardo"` → usuário
@@ -125,15 +125,17 @@ certificados por domínio). A propagação leva de 10 a 15 minutos.
 ## 5. Front-end (na sua máquina → VM)
 
 ```bash
-# na VM: a pasta que o NGINX vai servir
-mkdir -p ~/frontend
-# o NGINX roda como outro usuário (www-data); no Ubuntu 22.04 as pastas
-# /home/* nascem fechadas (750). Sem isto, o site dá 403/500:
+# na VM: o NGINX roda como outro usuário (www-data); no Ubuntu 22.04 as
+# pastas /home/* nascem fechadas (750). Sem isto, o site dá 403:
 chmod o+x /home/USUARIO
 
 # na sua máquina, dentro de frontend/ — com Vite a pasta é dist/, não build/
 VITE_API_URL=https://api.DOMINIO npm run build
-scp -r ./dist/* USUARIO@DOMINIO:/home/USUARIO/frontend
+scp -r ./dist USUARIO@IP:/home/USUARIO/frontend   # cria ~/frontend com o conteúdo de dist
+
+# na VM: o scp vindo do Windows cria as pastas com permissão 700 (só o dono);
+# o www-data não entra e o site responde 403 Forbidden. Abrir para leitura:
+chmod -R o+rX ~/frontend
 ```
 
 ## 6. NGINX e firewall (na VM)
@@ -189,11 +191,12 @@ Se aparecer `could not build server_names_hash`, acrescente
 ```bash
 sudo snap install --classic certbot
 sudo ln -s /snap/bin/certbot /usr/bin/certbot
-sudo certbot --nginx -d DOMINIO -d www.DOMINIO -d api.DOMINIO
+sudo certbot --nginx --no-redirect -d DOMINIO -d www.DOMINIO -d api.DOMINIO
 ```
 
-- e-mail: o seu; termos: `A`; redirecionar HTTP → HTTPS: **não** (o
-  checklist pede acesso por HTTP **e** HTTPS).
+- e-mail: o seu; termos: `Y`; compartilhar o e-mail com a EFF: você decide.
+- `--no-redirect`: o checklist pede acesso por HTTP **e** HTTPS. As versões
+  atuais do Certbot não perguntam mais e redirecionam por padrão.
 - confira: <https://www.sslshopper.com/ssl-checker.html> com os três nomes.
 - `sudo certbot renew --dry-run` testa a renovação automática.
 
@@ -227,9 +230,12 @@ criar e excluir cartão, curtir e descurtir. Depois, preencha os endereços no
 # back-end, na VM
 cd ~/web_project_api_full && git pull && cd backend && npm ci --omit=dev && pm2 restart app
 
-# front-end, na sua máquina
-cd frontend && VITE_API_URL=https://api.DOMINIO npm run build && \
-  scp -r ./dist/* USUARIO@DOMINIO:/home/USUARIO/frontend
+# front-end, na sua máquina (PowerShell, dentro de frontend/): apaga a versão
+# antiga, envia a nova e abre as permissões
+$env:VITE_API_URL="https://api.DOMINIO"; npm run build
+ssh USUARIO@IP "rm -rf ~/frontend"
+scp -r .\dist USUARIO@IP:/home/USUARIO/frontend
+ssh USUARIO@IP "chmod -R o+rX ~/frontend"
 ```
 
 > **Depois da aprovação:** remova a rota `/crash-test` do `backend/app.js`.
