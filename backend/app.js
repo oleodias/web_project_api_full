@@ -34,15 +34,6 @@ app.use(express.json());
 // 1) o logger de requisições vem antes de todas as rotas
 app.use(requestLogger);
 
-// Teste de queda para a revisão: o erro é lançado dentro do setTimeout, fora
-// do Express, e derruba o processo. O PM2 tem que subi-lo de novo.
-// REMOVER DEPOIS DA REVISÃO.
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('O servidor travará agora');
-  }, 0);
-});
-
 // 2) rotas públicas
 app.post('/signin', validateSignin, login);
 app.post('/signup', validateSignup, createUser);

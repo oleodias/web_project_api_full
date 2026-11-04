@@ -243,4 +243,4 @@ scp -r .\dist USUARIO@IP:/home/USUARIO/frontend
 ssh USUARIO@IP "chmod -R o+rX ~/frontend"
 ```
 
-> **Depois da aprovação:** remova a rota `/crash-test` do `backend/app.js`.
+> A rota `/crash-test` existiu só para a revisão e foi removida depois da aprovação.
