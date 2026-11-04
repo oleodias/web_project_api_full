@@ -19,8 +19,11 @@ anteriores:
 
 ## 🔗 Endereços
 
-- **Aplicativo:** _a preencher depois da implantação_ (`https://<seu-dominio>`)
-- **API:** _a preencher depois da implantação_ (`https://api.<seu-dominio>`)
+- **Aplicativo:** <https://leoaround.kaiak.top> (também `https://www.leoaround.kaiak.top` e por HTTP)
+- **API:** <https://api.leoaround.kaiak.top> (também por HTTP)
+
+Servidor: VM no Google Cloud (Ubuntu 22.04), NGINX como proxy reverso,
+certificado Let's Encrypt para os três nomes, API mantida pelo PM2.
 
 ## 🚩 O que o aplicativo faz
 
