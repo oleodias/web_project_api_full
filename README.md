@@ -19,13 +19,23 @@ anteriores:
 | --- | --- |
 | 18 | Cadastro e login na API própria (bcrypt + JWT), rotas protegidas, erros centralizados, validação com celebrate, logs, CORS; o front passa a usar só esta API; implantação com domínio e HTTPS |
 
-## 🔗 Endereços
+## 🔗 Implantação
 
-- **Aplicativo:** <https://leoaround.kaiak.top> (também `https://www.leoaround.kaiak.top` e por HTTP)
-- **API:** <https://api.leoaround.kaiak.top> (também por HTTP)
+O projeto ficou no ar em `https://leoaround.kaiak.top` (API em
+`https://api.leoaround.kaiak.top`), numa VM do Google Cloud (Ubuntu 22.04) com
+NGINX como proxy reverso, PM2 e certificado Let's Encrypt para os três nomes.
+Foi **revisado e aprovado** pela TripleTen nesse endereço, em novembro de 2026.
 
-Servidor: VM no Google Cloud (Ubuntu 22.04), NGINX como proxy reverso,
-certificado Let's Encrypt para os três nomes, API mantida pelo PM2.
+Depois da aprovação, o servidor foi **desligado** para não gerar custos, e os
+registros de DNS foram apagados junto (para que o domínio não aponte para um
+IP que o Google pode entregar a outra pessoa). Os links acima não funcionam
+mais. Para ver o projeto:
+
+- o **vídeo** abaixo mostra o app e a API em produção, antes do desligamento;
+- a seção [Como executar localmente](#-como-executar-localmente) sobe tudo na
+  sua máquina;
+- o passo a passo da implantação continua em
+  [`docs/IMPLANTACAO.md`](docs/IMPLANTACAO.md), para refazer num servidor novo.
 
 ## 🎬 Demonstração em vídeo
 
@@ -38,7 +48,7 @@ código deste repositório, **sem alterações**, rodando localmente com um
 
 | Capítulo | O que aparece | Onde está no código |
 | --- | --- | --- |
-| 01 · No ar | o app em `leoaround.kaiak.top` e a API respondendo 401 sem token | `middlewares/auth.js`, NGINX + PM2 |
+| 01 · No ar | o app em `leoaround.kaiak.top` (quando ainda estava no ar) e a API respondendo 401 sem token | `middlewares/auth.js`, NGINX + PM2 |
 | 02 · Cadastro | `POST /signup` → 201 e o documento no MongoDB com a senha em hash bcrypt | `controllers/users.js` (`createUser`) |
 | 03 · E-mail repetido | o mesmo e-mail de novo → 409 | índice `unique` em `models/user.js` → erro 11000 → 409 no `error-handler.js` |
 | 04 · Login | `POST /signin` → JWT de 7 dias, salvo no navegador | `login`, `utils/config.js` |
