@@ -207,8 +207,13 @@ nano ~/.ssh/authorized_keys   # cole a chave do fim da lição, numa linha nova
 ```
 
 A chave da lição começa com `ssh-ed25519`, mas o conteúdo
-(`AAAAB3NzaC1yc2E...`) é de uma chave **RSA**. Se o revisor não conseguir
-entrar, troque o começo da linha para `ssh-rsa`.
+(`AAAAB3NzaC1yc2E...`) é de uma chave **RSA**, e com o rótulo errado o servidor
+ignora a linha em silêncio. Corrija o rótulo e confira:
+
+```bash
+sed -i 's/^ssh-ed25519 AAAAB3NzaC1yc2E/ssh-rsa AAAAB3NzaC1yc2E/' ~/.ssh/authorized_keys
+ssh-keygen -lf ~/.ssh/authorized_keys   # duas linhas: a sua (ED25519) e console@console (RSA)
+```
 
 ## 9. Conferência final (checklist)
 
