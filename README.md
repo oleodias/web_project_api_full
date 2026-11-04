@@ -1,5 +1,7 @@
 # 🌎 Around The U.S. — aplicativo completo (front-end + API)
 
+> 🎬 **Vídeo de demonstração (2,5 min):** https://drive.google.com/file/d/1PKVJLZ9IMhmqFkeKVeBmxXHoK42Sd21O/view · 🌐 **Site:** https://leoaround.kaiak.top
+
 ## 📅 Sprints
 
 Projeto da **Sprint 18**, a última do curso de Desenvolvimento Web da
@@ -24,6 +26,48 @@ anteriores:
 
 Servidor: VM no Google Cloud (Ubuntu 22.04), NGINX como proxy reverso,
 certificado Let's Encrypt para os três nomes, API mantida pelo PM2.
+
+## 🎬 Demonstração em vídeo
+
+> 🔗 **Vídeo:** [assistir no Google Drive](https://drive.google.com/file/d/1PKVJLZ9IMhmqFkeKVeBmxXHoK42Sd21O/view?usp=sharing)
+
+Vídeo de **2min28** (1080p, 60 fps, legendas em português). O primeiro
+capítulo mostra o app e a API **em produção** (só leitura); os outros mostram o
+código deste repositório, **sem alterações**, rodando localmente com um
+**MongoDB real**, com duas contas de teste.
+
+| Capítulo | O que aparece | Onde está no código |
+| --- | --- | --- |
+| 01 · No ar | o app em `leoaround.kaiak.top` e a API respondendo 401 sem token | `middlewares/auth.js`, NGINX + PM2 |
+| 02 · Cadastro | `POST /signup` → 201 e o documento no MongoDB com a senha em hash bcrypt | `controllers/users.js` (`createUser`) |
+| 03 · E-mail repetido | o mesmo e-mail de novo → 409 | índice `unique` em `models/user.js` → erro 11000 → 409 no `error-handler.js` |
+| 04 · Login | `POST /signin` → JWT de 7 dias, salvo no navegador | `login`, `utils/config.js` |
+| 05 · Novo cartão | `POST /cards` → 201; a lixeira só para a dona | `owner` vindo de `req.user` |
+| 06 · Outra conta | outra pessoa vê o cartão sem lixeira, curte, e excluir pela API dá 403 | `deleteCard` com `ForbiddenError` |
+| 07 · Logs | as linhas do `request.log` (método, rota, status e tempo) | `middlewares/logger.js` (winston) |
+| 08 · Sair | o token é apagado e o app volta ao login | `handleSignOut` no front |
+
+**Como o vídeo foi feito:** a tela é uma gravação real do navegador
+(Playwright). As janelas de terminal mostram saídas reais (MongoDB, `curl` e
+`request.log`) numa janela desenhada pelo vídeo. Por cima há só uma camada de
+_motion_ (câmera, cursor, setas, destaques, legendas e capítulos), feita com
+Python, Cairo e ffmpeg. Senhas, tokens e o hash completo nunca aparecem.
+
+**Trilha sonora:** original, composta e sintetizada por código para o vídeo
+(sem samples nem músicas de terceiros), sincronizada com as animações.
+
+### Resumo
+
+- **O que foi construído e por quê:** o front-end React do curso ligado a uma
+  API própria (Express 5 + MongoDB), com cadastro e login seguros, validação,
+  erros centralizados e logs, publicada num servidor real para funcionar de
+  ponta a ponta na internet.
+- **Problema que resolve:** cada pessoa tem a sua conta e só mexe no que é seu
+  (403), e-mails repetidos são barrados (409), rotas sem token respondem 401, e
+  o app fica no ar com domínio próprio e HTTPS.
+- **Tecnologias:** Node.js, Express 5, MongoDB/Mongoose, bcryptjs, JWT,
+  celebrate, winston, React 19, React Router 6, Vite, Google Cloud, NGINX, PM2
+  e Let's Encrypt.
 
 ## 🚩 O que o aplicativo faz
 
